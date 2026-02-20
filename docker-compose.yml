@@ -56,18 +56,9 @@ x-shared:
       - zammad-storage:/opt/zammad/storage
     depends_on:
       - zammad-memcached
-      - zammad-postgresql
       - zammad-redis
 
 services:
-  zammad-backup:
-    <<: *zammad-service
-    command: ["zammad-backup"]
-    volumes:
-      - zammad-backup:/var/tmp/zammad
-      - zammad-storage:/opt/zammad/storage:ro
-    user: 0:0
-
   zammad-elasticsearch:
     image: elasticsearch:${ELASTICSEARCH_VERSION:-8.19.11}
     restart: ${RESTART:-always}
@@ -81,8 +72,6 @@ services:
   zammad-init:
     <<: *zammad-service
     command: ["zammad-init"]
-    depends_on:
-      - zammad-postgresql
     restart: on-failure
     user: 0:0
 
@@ -100,16 +89,6 @@ services:
       - "${NGINX_EXPOSE_PORT:-8080}:${NGINX_PORT:-8080}"
     depends_on:
       - zammad-railsserver
-
-  zammad-postgresql:
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-zammad_production}
-      POSTGRES_USER: ${POSTGRES_USER:-zammad}
-      POSTGRES_PASSWORD: ${POSTGRES_PASS:-zammad}
-    image: postgres:${POSTGRES_VERSION:-17.7-alpine}
-    restart: ${RESTART:-always}
-    volumes:
-      - postgresql-data:/var/lib/postgresql/data
 
   zammad-railsserver:
     <<: *zammad-service
@@ -131,8 +110,6 @@ services:
 
 volumes:
   elasticsearch-data:
-    driver: local
-  postgresql-data:
     driver: local
   redis-data:
     driver: local
